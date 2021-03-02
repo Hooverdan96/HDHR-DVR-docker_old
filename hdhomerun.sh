@@ -2,7 +2,7 @@
 ###########################
 # hdhomerun.sh
 # Shell Script to prepare the container data and execute the record engine
-# Version 1.1
+# Version 1.3
 #  
 
 # Parameters - make sure these match the DockerFile
@@ -14,6 +14,7 @@ DVRRec=${HDHR_HOME}/recordings
 DefaultPort=59090
 
 # Download URLs from Silicondust - Shouldn't change much
+# Check https://info.hdhomerun.com/info/dvr:linux
 DownloadURL=https://download.silicondust.com/hdhomerun/hdhomerun_record_linux
 BetaURL=https://download.silicondust.com/hdhomerun/hdhomerun_record_linux_beta
 
@@ -109,10 +110,21 @@ validate_config_file()
 update_engine()
 {
 	echo "** Installing the HDHomeRunDVR Record Engine"  >> ${HDHR_LOG}
-	echo "Lets remove any existing engine - we're going to take the latest always.... " >> ${HDHR_LOG}
-	rm -f  ${DVRData}/${DVRBin}
-	echo "Checking it was deleted - if we can't remove it we can't update" >>  ${HDHR_LOG}
-	# TODO: check file was deleted - warn if not
+	echo "removing any existing engine - always going to use the latest ... " >> ${HDHR_LOG}
+	echo "checking current engine file owner" >> ${HDHR_LOG}
+	BinOwner="$(stat --format %U ${DVRData}/${DVRBin})"
+	if [ "$BinOwner" = "${USER}" ); then
+		echo "Current owner:" $BinOwner ". Trying to remove current engine ..." >> ${HDHR_LOG}
+		rm -f  ${DVRData}/${DVRBin}
+		if [ "$?" -ne "0" ]; then
+			echo "something went wrong during engine removal, exiting engine_update" >> ${HDHR_LOG}
+			exit
+		fi
+	else
+		echo "engine cannot be removed. Current owner:" ${owner] "current User:"${USER} "exiting engine_update" >> ${HDHR_LOG}
+		exit
+	fi
+	
 	# TODO: check Beta download is enabled on config file, and only download if enabled
 	echo "Downloading latest release" >> ${HDHR_LOG}
 	wget -qO ${DVRData}/${DVRBin}_rel ${DownloadURL}
