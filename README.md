@@ -25,5 +25,7 @@ docker run -d --name dvr \
   --network host \
   -v /path/to/hdhomerun/tempdata:/dvrdata \
   -v /path/to/hdhomerun/recordings:/dvrrec \
-  demonrik/hdhrdvr-docker
+  docker imagename tbd
+  
+  (original before fork: demonrik/hdhrdvr-docker)
 ```
