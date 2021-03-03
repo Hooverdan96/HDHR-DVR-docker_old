@@ -4,8 +4,9 @@
 # if no config already exists and then start the engine.
 # To update the record engine, simply stop the container, and restart
 
-# Base Image to use
-FROM alpine:3.11.6
+# Base Image to use - let's see whether latest alpine image gives problems
+# FROM alpine:3.11.6
+FROM alpine:latest
 
 # Build up new image
 COPY install.sh /
@@ -16,6 +17,7 @@ COPY hdhomerun.sh /HDHomeRunDVR
 VOLUME ["/dvrrec", "/dvrdata"]
 
 # Will use this port for mapping engine to the outside world
+# If changing, consider hdhomerun.sh adjustment as well
 EXPOSE 59090
 
 # And setup to run by default
