@@ -125,7 +125,7 @@ update_engine()
 			exit
 		fi
 	else
-		echo "engine cannot be removed. Current owner:" ${owner} "current User:"${USER} "exiting engine_update" >> ${HDHR_LOG}
+		echo "engine cannot be removed. Current owner:" ${BinOwner} "current User:"${CurrentUser} "exiting engine_update" >> ${HDHR_LOG}
 		exit
 	fi
 		
