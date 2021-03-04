@@ -38,7 +38,7 @@ docker run -d --name dvr \
   -e PUID = numeric_User_ID \
   -v /path/to/hdhomerun/tempdata:/dvrdata \
   -v /path/to/hdhomerun/recordings:/dvrrec \
-  jackdock96/hdh_dvr:beta
+  jackdock96/hdh_dvr:latest
   
   (original before fork: demonrik/hdhrdvr-docker)
 ```
