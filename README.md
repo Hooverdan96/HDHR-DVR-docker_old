@@ -8,8 +8,7 @@ Image based on latest Alpine Linux https://alpinelinux.org/
 Contains a script to download the latest engine when the engine is started.  
 To update the engine stop the container and then start it again and it will get the latest.
 
-Is important for HDHomeRun system to have everything on the same Network.  
-thus run the container with the host network selected, i.e.
+Is important for HDHomeRun system to have everything on the same Network. While this is considered a possible security risk for some, the alternatives seem to be too cumbersome (but open to suggestions). For now, run the run the container with the host network selected, i.e.
 ```
 --network host
 ```
