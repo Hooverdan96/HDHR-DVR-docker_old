@@ -14,6 +14,7 @@ Is important for HDHomeRun system to have everything on the same Network. While 
 ```
 ## DVR Engine User
 The container is run as a root user (unless specified differently in docker run command), but the engine can be run with a different user altogether, e.g. if the resulting files should be managed through a Plex server, then the user of the HDHomeRun DVR needs to be aligned with the user/user group of the Plex instance (or jellyfin, emby, kodi, etc.).
+
 | Environment Variable | Description |
 |  --------| ------- |
 | PGID | User Group ID (numeric value, not name), if not specified it will default to 1000 |
