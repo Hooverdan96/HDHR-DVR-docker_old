@@ -1,3 +1,5 @@
+Forked from: https://github.com/demonrik/HDHR-DVR-docker
+
 # HDHR-DVR-docker
 Docker Wrapper for SiliconDust's HDHomeRun DVR Record Engine
 
@@ -25,5 +27,7 @@ docker run -d --name dvr \
   --network host \
   -v /path/to/hdhomerun/tempdata:/dvrdata \
   -v /path/to/hdhomerun/recordings:/dvrrec \
-  demonrik/hdhrdvr-docker
+  jackdock96/hdh_dvr:beta
+  
+  (original before fork: demonrik/hdhrdvr-docker)
 ```
