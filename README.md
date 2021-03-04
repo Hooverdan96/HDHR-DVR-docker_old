@@ -25,6 +25,8 @@ thus run the container with the host network selected, i.e.
 docker run -d --name dvr \
   --restart=unless-stopped \
   --network host \
+  -e PGID = numeric_Group_ID \
+  -e PUID = numeric_User_ID \
   -v /path/to/hdhomerun/tempdata:/dvrdata \
   -v /path/to/hdhomerun/recordings:/dvrrec \
   jackdock96/hdh_dvr:beta
