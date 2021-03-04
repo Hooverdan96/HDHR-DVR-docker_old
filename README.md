@@ -25,7 +25,7 @@ docker run -d --name dvr \
   --network host \
   -v /path/to/hdhomerun/tempdata:/dvrdata \
   -v /path/to/hdhomerun/recordings:/dvrrec \
-  docker imagename tbd
+  jackdock96/hdh_dvr:beta
   
   (original before fork: demonrik/hdhrdvr-docker)
 ```
