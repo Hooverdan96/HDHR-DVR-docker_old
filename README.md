@@ -3,7 +3,7 @@ Forked from: https://github.com/demonrik/HDHR-DVR-docker
 # HDHR-DVR-docker
 Docker Wrapper for SiliconDust's HDHomeRun DVR Record Engine
 
-Image based no Alpine Linux https://alpinelinux.org/
+Image based on latest Alpine Linux https://alpinelinux.org/
 
 Contains a script to download the latest engine when the engine is started.  
 To update the engine stop the container and then start it again and it will get the latest.
