@@ -1,3 +1,5 @@
+# if branch merged for multi-stage build, this file will become obsolete
+
 #!/bin/sh
 ###########################
 # install.sh
