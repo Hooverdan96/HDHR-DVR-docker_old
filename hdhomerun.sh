@@ -185,7 +185,7 @@ update_engine()
 #
 start_engine()
 {
-	echo "** Starting the DVR Engine as user $HDHR_USER" >> ${HDHR_LOG}
+	echo "** Starting the HDHomrun DVR Engine as user $HDHR_USER" >> ${HDHR_LOG}
 #	su ${HDHR_USER} -c 
 	${HDHR_HOME}/${DVRBin} foreground --conf ${DVRData}/${DVRConf} >> ${HDHR_LOG} 2>&1
 }
