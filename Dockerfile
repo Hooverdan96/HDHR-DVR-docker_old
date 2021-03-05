@@ -16,8 +16,7 @@ RUN /bin/sh /install.sh
 # Layer 3
 COPY hdhomerun.sh /HDHomeRunDVR
 
-
-
+FROM builder as final
 # Set Volumes to be added
 VOLUME ["/dvrrec", "/dvrdata"]
 
@@ -28,7 +27,6 @@ EXPOSE 65001/udp
 # anyport/tcp for client interaction with dvr
 # If changing, requires hdhomerun.sh adjustment (to update config file) as well
 EXPOSE 59090/tcp
-
 
 # And setup to run by default
 ENTRYPOINT ["/bin/sh","/HDHomeRunDVR/hdhomerun.sh"]
