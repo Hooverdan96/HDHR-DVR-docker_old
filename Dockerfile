@@ -8,25 +8,51 @@
 # FROM alpine:3.11.6
 FROM alpine:latest as builder
 
-# Build up new image
-# Layer 1
-COPY install.sh /
-# Layer 2
-RUN /bin/sh /install.sh
-# Layer 3
-COPY hdhomerun.sh /HDHomeRunDVR
-
-FROM builder as final
-# Set Volumes to be added
-VOLUME ["/dvrrec", "/dvrdata"]
-
-# Will use this port for mapping engine to the outside world
+# Base Variables
+# Default Directories
+ARG wrkdir = /HDHomeRunDVR
+ARG dvrdata = /dvrdata
+ARG dvrrec = /dvrrec
+# User/User Group
+ARG user=hdhr
+ARG group=hdhr
+# Default PGID/PUID
+ARG uid=1000
+ARG gid=1000
+# Default Ports
 # https://info.hdhomerun.com/info/dvr:troubleshooting#firewall
 # 65001/udp required for HDHomeRun discovery and for clients to discover the record engine
-EXPOSE 65001/udp
+ARG udp_port = 65001
 # anyport/tcp for client interaction with dvr
 # If changing, requires hdhomerun.sh adjustment (to update config file) as well
-EXPOSE 59090/tcp
+ARG tcp_port = 59090
+
+# update/add packages
+RUN apk update
+RUN apk add wget
+RUN apk add grep
+
+# Create working directory
+RUN mkdir -p ${wrkdir}
+
+# Create volume mount points
+RUN mkdir ${dvrdata}
+RUN mkdir ${dvrrec}
+
+# Move Startup Script into Image
+COPY hdhomerun.sh /HDHomeRunDVR
+
+# Add default user/group
+RUN groupadd -g ${gid} ${group} && useradd -u ${uid} -g ${group} -s /bin/sh ${user}
+
+# Compressed Image with entry point
+FROM builder as final
+# Set Volumes to be added
+VOLUME [${dvrdata}, ${dvrrec}]
+
+# Mapping for engine to outside world
+EXPOSE ${udp_port}/udp
+EXPOSE ${tcp_port}/tcp
 
 # And setup to run by default
 ENTRYPOINT ["/bin/sh","/HDHomeRunDVR/hdhomerun.sh"]
