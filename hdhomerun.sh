@@ -2,15 +2,18 @@
 ############################################################################################################
 # hdhomerun.sh
 # Shell Script to prepare the container data and execute the record engine
-# Version 1.3
+# Version 2.0
+# preparing for pulling engine into docker container, only exposing configuration and recording directory
 # freely after https://github.com/demonrik/HDHR-DVR-docker
 
 # Parameters - make sure these match the DockerFile
 HDHR_HOME=/HDHomeRunDVR
 HDHR_USER=hdhr
 HDHR_GRP=hdhr
-DVRData=${HDHR_HOME}/data
-DVRRec=${HDHR_HOME}/recordings
+# DVRData=${HDHR_HOME}/data
+# DVRRec=${HDHR_HOME}/recordings
+DVRData=/dvrdata
+DVRRec=/dvrrec
 DefaultPort=59090
 
 # Download URLs from Silicondust - Shouldn't change much
@@ -20,12 +23,15 @@ BetaURL=https://download.silicondust.com/hdhomerun/hdhomerun_record_linux_beta
 
 
 # Some additional params you can change
+# configuration file used during engine startup
 DVRConf=dvr.conf
+# dvr engine name
 DVRBin=hdhomerun_record
+# Log file name and location
 HDHR_LOG=${DVRData}/HDHomeRunDVR.log
 
 ##############################################################################################################
-# Create hdhr user to run the DVR as,if they aren't passed into container default to 1000:1000
+# (Re)create hdhr user to run the DVR as,if they aren't passed into container default to 1000:1000
 #
 create_hdhr_user()
 {
@@ -48,17 +54,17 @@ create_hdhr_user()
 			delgroup $HDHR_GRP
 			addgroup -g $PGID $HDHR_GRP
 		else
-			echo "Yep... Using existing group" >> ${HDHR_LOG}
+			echo "Exists... using existing group" >> ${HDHR_LOG}
 			HDHR_GRP=$(grep -F ":$PGID:" /etc/group | cut -d: -f1)
 		fi
 
 		echo "Checking $PUID exists" >> ${HDHR_LOG}
 		if ! grep -qF ":$PUID:" /etc/passwd ; then
-			echo "Nope... creating User $HDHR_USER with ID $PUID in Group $HDHR_GRP " >> ${HDHR_LOG}
+			echo "Doesn't exist... creating User $HDHR_USER with ID $PUID in Group $HDHR_GRP " >> ${HDHR_LOG}
 			deluser $HDHR_USER
 			adduser -HDG "$HDHR_GRP" -u $PUID $HDHR_USER
 		else
-			echo "Yep... Using existing User" >> ${HDHR_LOG}
+			echo "Exists... Using existing User" >> ${HDHR_LOG}
 			HDHR_USER=$(grep -F ":$PUID:" /etc/passwd | cut -d: -f1)
 		fi
 	else
@@ -70,7 +76,7 @@ create_hdhr_user()
 ############################################################################################################
 # Creates the initial config file for the engine in /HDHomeRunDVR/data
 # Sets Following defaults
-#   RecordPath =  /HDHomeRunDVR/recordings  # Should always be this
+#   RecordPath = /dvrrec		    # Should always be this
 #   Port = 59090                            # must match the Dockerfile
 #   RecordStreamsMax=16                     # Enable max recordings
 #   BetaEngine=1                            # Used by this script
@@ -113,20 +119,20 @@ validate_config_file()
 update_engine()
 {
 	echo "** Installing the HDHomeRunDVR Record Engine"  >> ${HDHR_LOG}
-	if [ -f "${DVRData}/${DVRBin}" ] ; then
+	if [ -f "${HDHR_HOME}/${DVRBin}" ] ; then
 		echo "removing any existing engine - always going to use the latest ... " >> ${HDHR_LOG}
 		echo "checking current engine file owner" >> ${HDHR_LOG}
-		BinOwner="$(stat -c %U ${DVRData}/${DVRBin})"
+		BinOwner="$(stat -c %U ${HDHR_HOME}/${DVRBin})"
 		CurrentUser="$(id -un)"
 		echo "file owner:""$BinOwner" "/ USER:""$CurrentUser" >> ${HDHR_LOG}
 		if [ "${BinOwner}" = "${CurrentUser}" ] ; then
 			echo "Current owner same as user:" "$BinOwner" ". Trying to remove current engine ..." >> ${HDHR_LOG}
-			if rm -f  ${DVRData}/${DVRBin}; then
+			if rm -f  ${HDHR_HOME}/${DVRBin}; then
 				echo "engine deletion successful" >> ${HDHR_LOG}
 			else
 				echo "attempt to force owner to current user one more time" >> ${HDHR_LOG}
-				chown "$CurrentUser" "${DVRData}/${DVRBin}"
-				if rm -f  ${DVRData}/${DVRBin}; then
+				chown "$CurrentUser" "${HDHR_HOME}/${DVRBin}"
+				if rm -f  ${HDHR_HOME}/${DVRBin}; then
 					echo "engine deletion successful" >> ${HDHR_LOG}
 				else
 					echo "something went wrong during engine removal, exiting engine_update, might need to delete manually" >> ${HDHR_LOG}
@@ -135,8 +141,8 @@ update_engine()
 			fi
 		else
 			echo "attempting to change engine file owner for deletion" >> ${HDHR_LOG}
-			chown "$CurrentUser" "${DVRData}/${DVRBin}"
-			if rm -f  ${DVRData}/${DVRBin};then
+			chown "$CurrentUser" "${HDHR_HOME}/${DVRBin}"
+			if rm -f  ${HDHR_HOME}/${DVRBin};then
 				echo "deletion successful" >> ${HDHR_LOG}
 			else
 				echo "engine cannot be removed. Current owner:" "${BinOwner}" "current User:""${CurrentUser}" "exiting engine_update" >> ${HDHR_LOG}
@@ -147,30 +153,30 @@ update_engine()
 		
 		# TODO: check Beta download is enabled on config file, and only download if enabled
 	echo "Downloading latest release" >> ${HDHR_LOG}
-	wget -qO ${DVRData}/${DVRBin}_rel ${DownloadURL}
+	wget -qO ${HDHR_HOME}/${DVRBin}_rel ${DownloadURL}
 	if [ "$BetaEngine" -eq "1" ]; then
 		echo "Downloading latest beta" >> ${HDHR_LOG}
-		wget -qO ${DVRData}/${DVRBin}_beta ${BetaURL}
+		wget -qO ${HDHR_HOME}/${DVRBin}_beta ${BetaURL}
 		echo "Comparing which is newest" >>  ${HDHR_LOG}
-		if [ ${DVRData}/${DVRBin}_rel -nt  ${DVRData}/${DVRBin}_beta ] ; then
+		if [ ${HDHR_HOME}/${DVRBin}_rel -nt  ${DVRData}/${DVRBin}_beta ] ; then
 			echo "Release version is newer - selecting as record engine" >> ${HDHR_LOG}
-			mv ${DVRData}/${DVRBin}_rel ${DVRData}/${DVRBin}
-			rm ${DVRData}/${DVRBin}_beta
+			mv ${HDHR_HOME}/${DVRBin}_rel ${DVRData}/${DVRBin}
+			rm ${HDHR_HOME}/${DVRBin}_beta
 			chmod u+x ${DVRData}/${DVRBin}
-		elif [ ${DVRData}/${DVRBin}_rel -ot  ${DVRData}/${DVRBin}_beta ]; then
+		elif [ ${HDHR_HOME}/${DVRBin}_rel -ot  ${HDHR_HOME}/${DVRBin}_beta ]; then
 			echo "Beta version is newer - selecting as record engine" >> ${HDHR_LOG}
-			mv ${DVRData}/${DVRBin}_beta ${DVRData}/${DVRBin}
-			rm ${DVRData}/${DVRBin}_rel
-			chmod u+x ${DVRData}/${DVRBin}
+			mv ${HDHR_HOME}/${DVRBin}_beta ${HDHR_HOME}/${DVRBin}
+			rm ${HDHR_HOME}/${DVRBin}_rel
+			chmod u+x ${HDHR_HOME}/${DVRBin}
 		else
 			echo "Both versions are same - using the Release version" >> ${HDHR_LOG}
-			mv ${DVRData}/${DVRBin}_rel ${DVRData}/${DVRBin}
-			rm ${DVRData}/${DVRBin}_beta
-			chmod u+x ${DVRData}/${DVRBin}
+			mv ${HDHR_HOME}/${DVRBin}_rel ${HDHR_HOME}/${DVRBin}
+			rm ${HDHR_HOME}/${DVRBin}_beta
+			chmod u+x ${HDHR_HOME}/${DVRBin}
 		fi
 	fi
 
-	EngineVer=$(sh ${DVRData}/${DVRBin}  version | awk 'NR==1{print $4}')
+	EngineVer=$(sh ${HDHR_HOME}/${DVRBin}  version | awk 'NR==1{print $4}')
 	echo "Engine Updated to... " "${EngineVer}" >>  ${HDHR_LOG}
 }
 
@@ -181,7 +187,7 @@ start_engine()
 {
 	echo "** Starting the DVR Engine as user $HDHR_USER" >> ${HDHR_LOG}
 #	su ${HDHR_USER} -c 
-	${DVRData}/${DVRBin} foreground --conf ${DVRData}/${DVRConf} >> ${HDHR_LOG} 2>&1
+	${HDHR_HOME}/${DVRBin} foreground --conf ${DVRData}/${DVRConf} >> ${HDHR_LOG} 2>&1
 }
 
 ############################################################################################################
