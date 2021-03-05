@@ -8,6 +8,7 @@
 # FROM alpine:3.11.6
 FROM alpine:latest as builder
 
+##########################################################################
 # Base Variables
 # Default Directories
 ARG wrkdir = /HDHomeRunDVR
@@ -27,27 +28,36 @@ ARG udp_port = 65001
 # If changing, requires hdhomerun.sh adjustment (to update config file) as well
 ARG tcp_port = 59090
 
+##########################################################################
 # update/add packages
 RUN apk update
 RUN apk add wget
 RUN apk add grep
 
+##########################################################################
 # Create working directory
 RUN mkdir -p ${wrkdir}
 
+##########################################################################
 # Create volume mount points
 RUN mkdir ${dvrdata}
 RUN mkdir ${dvrrec}
 
-# Move Startup Script into Image
+##########################################################################
+# Move Startup Script into Image, will be run every time container is started
 COPY hdhomerun.sh /HDHomeRunDVR
 
+##########################################################################
 # Add default user/group
 RUN groupadd -g ${gid} ${group} && useradd -u ${uid} -g ${group} -s /bin/sh ${user}
 
+##########################################################################
+##########################################################################
 # Compressed Image with entry point
+##########################################################################
+##########################################################################
 FROM builder as final
-# Set Volumes to be added
+# Set Volumes to be added for external mapping
 VOLUME [${dvrdata}, ${dvrrec}]
 
 # Mapping for engine to outside world
