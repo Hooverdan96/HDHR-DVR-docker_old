@@ -47,9 +47,7 @@ docker run -d --name dvr \
   -p any_tcp_port:59090 \
   -e PGID = numeric_Group_ID \
   -e PUID = numeric_User_ID \
-  -v /path/to/hdhomerun/tempdata:/dvrdata \
+  -v /path/to/hdhomerun/config&logs:/dvrdata \
   -v /path/to/hdhomerun/recordings:/dvrrec \
   jackdock96/hdh_dvr:latest
-  
-  (original before fork: demonrik/hdhrdvr-docker)
 ```
