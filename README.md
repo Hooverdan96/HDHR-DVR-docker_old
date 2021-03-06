@@ -41,7 +41,7 @@ If desired, the container can be run with the option to use the host's network s
 
 ## Docker Run Example
 ```
-docker run -d --name dvr \
+docker run -d --name hdhomerun_dvr \
   --restart=unless-stopped \
   -p 65001:65001/udp \
   -p any_tcp_port:59090 \
