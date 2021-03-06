@@ -5,8 +5,8 @@ Docker Wrapper for SiliconDust's HDHomeRun DVR Record Engine
 
 Image based on latest Alpine Linux https://alpinelinux.org/
 
-Contains a script to download the latest engine when the engine is started.  
-To update the engine stop the container and then start it again and it will get the latest.
+Contains a script to download the latest engine after the container and before the engine is started.  
+To update the engine stop the container and restart, this will trigger the download of the latest version.
 
 ## DVR Engine User
 The container is run as a root user (unless specified differently in docker run command), but the engine can be run with a different user altogether, e.g. if the resulting files should be managed through a Plex server, then the user of the HDHomeRun DVR needs to be aligned with the user/user group of the Plex instance (or jellyfin, emby, kodi, etc.).
