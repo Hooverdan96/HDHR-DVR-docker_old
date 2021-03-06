@@ -11,9 +11,9 @@ FROM alpine:latest as builder
 ##########################################################################
 # Base Variables
 # Default Directories
-ARG wrkdir = /HDHomeRunDVR
-ARG dvrdata = /dvrdata
-ARG dvrrec = /dvrrec
+ARG wrkdir = HDHomeRunDVR
+ARG dvrdata = dvrdata
+ARG dvrrec = dvrrec
 # User/User Group
 ARG user=hdhr
 ARG group=hdhr
@@ -36,16 +36,16 @@ RUN apk add grep
 
 ##########################################################################
 # Create working directory
-RUN mkdir -p ${wrkdir}
+RUN mkdir -p /${wrkdir}
 
 ##########################################################################
 # Create volume mount points
-RUN mkdir ${dvrdata}
-RUN mkdir ${dvrrec}
+RUN mkdir /${dvrdata}
+RUN mkdir /${dvrrec}
 
 ##########################################################################
 # Move Startup Script into Image, will be run every time container is started
-COPY hdhomerun.sh /HDHomeRunDVR
+COPY hdhomerun.sh /${wrkdir}
 
 ##########################################################################
 # Add default user/group
@@ -58,11 +58,11 @@ RUN groupadd -g ${gid} ${group} && useradd -u ${uid} -g ${group} -s /bin/sh ${us
 ##########################################################################
 FROM builder as final
 # Set Volumes to be added for external mapping
-VOLUME [${dvrdata}, ${dvrrec}]
+VOLUME ["/${dvrdata}", "/${dvrrec}"]
 
 # Mapping for engine to outside world
 EXPOSE ${udp_port}/udp
 EXPOSE ${tcp_port}/tcp
 
 # And setup to run by default
-ENTRYPOINT ["/bin/sh","/HDHomeRunDVR/hdhomerun.sh"]
+ENTRYPOINT ["/bin/sh","/${wrkdir}/hdhomerun.sh"]
