@@ -49,7 +49,8 @@ COPY hdhomerun.sh /${wrkdir}
 
 ##########################################################################
 # Add default user/group
-RUN groupadd -g ${gid} ${group} && useradd -u ${uid} -g ${group} -s /bin/sh ${user}
+# RUN groupadd -g ${gid} ${group} && useradd -u ${uid} -g ${group} -s /bin/sh ${user}
+RUN addgroup -g ${gid} ${group} && adduser -u ${uid} -g ${group} -s /bin/sh ${user}
 
 ##########################################################################
 ##########################################################################
