@@ -61,8 +61,8 @@ FROM builder as final
 VOLUME ["/${dvrdata}", "/${dvrrec}"]
 
 # Mapping for engine to outside world
-EXPOSE ${udp_port}/udp
-EXPOSE ${tcp_port}/tcp
+EXPOSE "${udp_port}/udp"
+EXPOSE "${tcp_port}/tcp"
 
 # And setup to run by default
 ENTRYPOINT ["/bin/sh","/${wrkdir}/hdhomerun.sh"]
