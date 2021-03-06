@@ -60,9 +60,10 @@ FROM builder as final
 # Set Volumes to be added for external mapping
 VOLUME ["/${dvrdata}", "/${dvrrec}"]
 
-# Mapping for engine to outside world
-EXPOSE "${udp_port}/udp"
-EXPOSE "${tcp_port}/tcp"
+# Mapping at least of udp port to docker network (if applicable)
+EXPOSE 65001/udp
+# not really necessary, as the discovery/engine configuration file will drive the tcp port needed
+# EXPOSE 59090
 
 # And setup to run by default
 ENTRYPOINT ["/bin/sh","/${wrkdir}/hdhomerun.sh"]
