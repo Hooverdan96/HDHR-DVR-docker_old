@@ -56,7 +56,7 @@ COPY hdhomerun.sh /${wrkdir}
 # Compressed Image with entry point
 ##########################################################################
 ##########################################################################
-FROM builder as final
+# FROM builder as final
 # Set Volumes to be added for external mapping
 VOLUME ["/${dvrdata}", "/${dvrrec}"]
 
