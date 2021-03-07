@@ -40,12 +40,12 @@ RUN mkdir -p /${wrkdir}
 
 ##########################################################################
 # Create volume mount points
-RUN mkdir /${dvrdata}
-RUN mkdir /${dvrrec}
+RUN mkdir /dvrdata
+RUN mkdir /dvrrec
 
 ##########################################################################
 # Move Startup Script into Image, will be run every time container is started
-COPY hdhomerun.sh /${wrkdir}
+COPY hdhomerun.sh /HDHomeRunDVR
 
 ##########################################################################
 # Add default user/group - really necessary?
@@ -58,7 +58,7 @@ COPY hdhomerun.sh /${wrkdir}
 ##########################################################################
 # FROM builder as final
 # Set Volumes to be added for external mapping
-VOLUME ["/${dvrdata}", "/${dvrrec}"]
+VOLUME ["/dvrdata", "/dvrrec"]
 
 # Mapping at least of udp port to docker network (if applicable)
 EXPOSE 65001/udp
@@ -66,4 +66,4 @@ EXPOSE 65001/udp
 EXPOSE 59090
 
 # And setup to run by default
-ENTRYPOINT ["/bin/sh","-c","/${wrkdir}/hdhomerun.sh"]
+ENTRYPOINT ["/bin/sh","/HDHomeRunDVR/hdhomerun.sh"]
