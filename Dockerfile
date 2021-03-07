@@ -11,9 +11,9 @@ FROM alpine:latest as builder
 ##########################################################################
 # Base Variables
 # Default Directories
-ENV wrkdir=HDHomeRunDVR
-ENV dvrdata=dvrdata
-ENV dvrrec=dvrrec
+ARG wrkdir HDHomeRunDVR
+ARG dvrdata dvrdata
+ARG dvrrec dvrrec
 # User/User Group
 ENV user=hdhr
 ENV group=hdhr
@@ -63,7 +63,7 @@ VOLUME ["/${dvrdata}", "/${dvrrec}"]
 # Mapping at least of udp port to docker network (if applicable)
 EXPOSE 65001/udp
 # not really necessary, as the discovery/engine configuration file will drive the tcp port needed
-# EXPOSE 59090
+EXPOSE 59090
 
 # And setup to run by default
-ENTRYPOINT ["/bin/sh","/"${wrkdir}"/hdhomerun.sh"]
+ENTRYPOINT ["/bin/sh","-c","/${wrkdir}/hdhomerun.sh"]
