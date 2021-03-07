@@ -11,22 +11,22 @@ FROM alpine:latest as builder
 ##########################################################################
 # Base Variables
 # Default Directories
-ARG wrkdir=HDHomeRunDVR
-ARG dvrdata=dvrdata
-ARG dvrrec=dvrrec
+ENV wrkdir=HDHomeRunDVR
+ENV dvrdata=dvrdata
+ENV dvrrec=dvrrec
 # User/User Group
-ARG user=hdhr
-ARG group=hdhr
+ENV user=hdhr
+ENV group=hdhr
 # Default PGID/PUID
-ARG uid=1000
-ARG gid=1000
+ENV uid=1000
+ENV gid=1000
 # Default Ports
 # https://info.hdhomerun.com/info/dvr:troubleshooting#firewall
 # 65001/udp required for HDHomeRun discovery and for clients to discover the record engine
-ARG udp_port=65001
+ENV udp_port=65001
 # anyport/tcp for client interaction with dvr
 # If changing, requires hdhomerun.sh adjustment (to update config file) as well
-ARG tcp_port=59090
+ENV tcp_port=59090
 
 ##########################################################################
 # update/add packages
