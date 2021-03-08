@@ -33,8 +33,8 @@ FROM alpine:latest as builder
 RUN apk update && apk add wget && apk add grep
 
 ##########################################################################
-# Create working directory
-RUN mkdir -p /HDHomeRunDVR
+# Create working directory and volume mount points
+RUN mkdir -p {/HDHomeRunDVR,/dvrdata,/dvrrec}
 
 ##########################################################################
 # Copy Startup Script into Image, will be run every time container is started
@@ -44,17 +44,13 @@ COPY hdhomerun.sh /HDHomeRunDVR
 # Add default user/group - really necessary?
 # RUN addgroup -g ${gid} ${group} && adduser -u ${uid} -g ${group} -s /bin/sh ${user}
 
-##########################################################################
-# Create volume mount points
-RUN mkdir /dvrdata
-RUN mkdir /dvrrec
 
 ##########################################################################
 ##########################################################################
 # Compressed Image with entry point
 ##########################################################################
 ##########################################################################
-# FROM builder as final
+FROM builder as final
 # Set Volumes to be added for external mapping
 VOLUME ["/dvrdata","/dvrrec"]
 
