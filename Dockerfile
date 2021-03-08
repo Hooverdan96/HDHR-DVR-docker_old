@@ -34,7 +34,7 @@ RUN apk update && apk add wget && apk add grep
 
 ##########################################################################
 # Create working directory and volume mount points
-RUN mkdir -p /HDHomeRunDVR && mkdir /dvrdata && mdir /dvrrec
+RUN mkdir -p /HDHomeRunDVR && mkdir /dvrdata && mkdir /dvrrec
 
 ##########################################################################
 # Copy Startup Script into Image, will be run every time container is started
