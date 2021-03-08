@@ -11,45 +11,43 @@ FROM alpine:latest as builder
 ##########################################################################
 # Base Variables
 # Default Directories
-ARG wrkdir HDHomeRunDVR
-ARG dvrdata dvrdata
-ARG dvrrec dvrrec
+# ARG wrkdir HDHomeRunDVR
+# ARG dvrdata dvrdata
+# ARG dvrrec dvrrec
 # User/User Group
-ENV user=hdhr
-ENV group=hdhr
+# ENV user=hdhr
+# ENV group=hdhr
 # Default PGID/PUID
-ENV uid=1000
-ENV gid=1000
+# ENV uid=1000
+# ENV gid=1000
 # Default Ports
 # https://info.hdhomerun.com/info/dvr:troubleshooting#firewall
 # 65001/udp required for HDHomeRun discovery and for clients to discover the record engine
-ENV udp_port=65001
+# ENV udp_port=65001
 # anyport/tcp for client interaction with dvr
 # If changing, requires hdhomerun.sh adjustment (to update config file) as well
-ENV tcp_port=59090
+# ENV tcp_port=59090
 
 ##########################################################################
 # update/add packages
-RUN apk update
-RUN apk add wget
-RUN apk add grep
+RUN apk update && apk add wget && apk add grep
 
 ##########################################################################
 # Create working directory
-RUN mkdir -p /${wrkdir}
+RUN mkdir -p /HDHomeRunDVR
 
 ##########################################################################
-# Create volume mount points
-RUN mkdir /dvrdata
-RUN mkdir /dvrrec
-
-##########################################################################
-# Move Startup Script into Image, will be run every time container is started
+# Copy Startup Script into Image, will be run every time container is started
 COPY hdhomerun.sh /HDHomeRunDVR
 
 ##########################################################################
 # Add default user/group - really necessary?
 # RUN addgroup -g ${gid} ${group} && adduser -u ${uid} -g ${group} -s /bin/sh ${user}
+
+##########################################################################
+# Create volume mount points
+RUN mkdir /dvrdata
+RUN mkdir /dvrrec
 
 ##########################################################################
 ##########################################################################
@@ -58,12 +56,12 @@ COPY hdhomerun.sh /HDHomeRunDVR
 ##########################################################################
 # FROM builder as final
 # Set Volumes to be added for external mapping
-VOLUME ["/dvrdata", "/dvrrec"]
+VOLUME ["/dvrdata","/dvrrec"]
 
 # Mapping at least of udp port to docker network (if applicable)
 EXPOSE 65001/udp
 # not really necessary, as the discovery/engine configuration file will drive the tcp port needed
-EXPOSE 59090
+# EXPOSE 59090
 
 # And setup to run by default
 ENTRYPOINT ["/bin/sh","/HDHomeRunDVR/hdhomerun.sh"]
