@@ -41,11 +41,6 @@ RUN mkdir -p /HDHomeRunDVR && mkdir /dvrdata && mkdir /dvrrec
 COPY hdhomerun.sh /HDHomeRunDVR
 
 ##########################################################################
-# Add default user/group - really necessary?
-# RUN addgroup -g ${gid} ${group} && adduser -u ${uid} -g ${group} -s /bin/sh ${user}
-
-
-##########################################################################
 ##########################################################################
 # Compressed Image with entry point
 ##########################################################################
