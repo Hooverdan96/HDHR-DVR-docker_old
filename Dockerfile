@@ -30,7 +30,7 @@ FROM alpine:latest as builder
 
 ##########################################################################
 # update/add packages
-RUN apk update && apk add wget && apk add grep
+RUN apk update && apk add wget grep --no-cache
 
 ##########################################################################
 # Create working directory and volume mount points
