@@ -5,6 +5,7 @@
 # Version 2.5
 # engine is run inside docker container, only exposing configuration and recording directory
 # freely after https://github.com/demonrik/HDHR-DVR-docker
+# TODO: more elegant engine replacement (only when newer than installed)
 
 # Parameters - make sure these match the DockerFile
 HDHR_HOME=/HDHomeRunDVR
@@ -33,41 +34,66 @@ BetaURL=https://download.silicondust.com/hdhomerun/hdhomerun_record_linux_beta
 #
 create_hdhr_user()
 {
-	CURR_USER="$(id -u)"
-	echo "$(date -u)" "Current User is $CURR_USER" >> ${HDHR_LOG}
-	if [ "$CURR_USER" = "0" ] ; then
-		echo "$(date -u)" "Creating HDHR User" >> ${HDHR_LOG}
-		if [ -z "${PGID}" ] ; then
-			echo "$(date -u)" "User ID (PGID) was not set, defaulting to 1000" >> ${HDHR_LOG}
-			PGID=1000
-		fi
-		if [ -z "${PUID}" ] ; then
-			echo "$(date -u)" "User ID (PGID) was not set, defaulting to 1000" >> ${HDHR_LOG}
-			PUID=1000
-		fi
+        CURR_USER="$(id -u)"
+        echo "$(date -u)" "Current User ID is $CURR_USER" >> ${HDHR_LOG}
+        if [ "$CURR_USER" = "0" ] ; then
+                echo "$(date -u)" "Checking whether PGID and PUID have been set" >> ${HDHR_LOG}
+				if [ -z "${PGID}" ] ; then
+						echo "$(date -u)" "Group ID (PGID) was not set, defaulting to 1000" >> ${HDHR_LOG}
+						PGID=1000
+                else
+						echo "$(date -u)" "PGID was set to ${PGID}" >> $(HDHR_LOG)
+                fi
+                if [ -z "${PUID}" ] ; then
+						echo "$(date -u)" "User ID (PUID) was not set, defaulting to 1000" >> ${HDHR_LOG}
+						PUID=1000
+                else
+						echo "$(date -u)" "PUID was set to ${PUID}" >> $(HDHR_LOG)                                        
+                fi                                                                                                         
+                                                                                                                           
+                echo "$(date -u)" "Checking whether PGID $PGID exists" >> ${HDHR_LOG}                                     
+                if ! grep -qF ":$PGID:" /etc/group ; then                                                                  
+                        echo "$(date -u)" "Does not exist creating Group $HDHR_GRP with ID $PGID" >> ${HDHR_LOG}          
+                        GO_CREATE="t"                                                                                      
 
-		echo "$(date -u)" "Checking whether $PGID exists" >> ${HDHR_LOG}
-		if ! grep -qF ":$PGID:" /etc/group ; then
-			echo "$(date -u)" "Does not exist creating Group $HDHR_GRP with ID $PGID" >> ${HDHR_LOG}
-			delgroup $HDHR_GRP
-			addgroup -g $PGID $HDHR_GRP
-		else
-			echo "$(date -u)" "Exists... using existing group" >> ${HDHR_LOG}
-			HDHR_GRP=$(grep -F ":$PGID:" /etc/group | cut -d: -f1)
-		fi
 
-		echo "$(date -u)" "Checking $PUID exists" >> ${HDHR_LOG}
-		if ! grep -qF ":$PUID:" /etc/passwd ; then
-			echo "$(date -u)" "Doesn't exist... creating User $HDHR_USER with ID $PUID in Group $HDHR_GRP " >> ${HDHR_LOG}
-			deluser $HDHR_USER
-			adduser -HDG "$HDHR_GRP" -u $PUID $HDHR_USER
-		else
-			echo "$(date -u)" "Exists... Using existing User" >> ${HDHR_LOG}
-			HDHR_USER=$(grep -F ":$PUID:" /etc/passwd | cut -d: -f1)
-		fi
-	else
-		echo "$(date -u)" "Running as non root user $CURR_USER ! Assume using -user on docker, skipping setup of user..." >> ${HDHR_LOG}
-	fi
+                else                                                                                                       
+                        echo "$(date -u)" "Group ${PGID} exists... using existing group" >> ${HDHR_LOG}
+                        GO_CREATE="f"
+                        HDHR_GRP=$(grep -F ":$PGID:" /etc/group | cut -d: -f1)
+                fi
+                echo "$(date -u)" "Checking whether PUID $PUID exists" >> ${HDHR_LOG}
+                if ! grep -qF ":$PUID:" /etc/passwd ; then
+                        echo "$(date -u)" "PUID ${PUID} doesn't exist... creating User $HDHR_USER with ID $PUID in Group $HDHR_GRP" >> ${HDHR_LOG}
+                        GO_CREATE="${GO_CREATE}t"
+
+                else
+                        echo "$(date -u)" "Exists... Using existing User" >> ${HDHR_LOG}
+                        GO_CREATE="${GO_CREATE}f"
+                        HDHR_USER=$(grep -F ":$PUID:" /etc/passwd | cut -d: -f1)
+                fi
+
+                case "${GO_CREATE}" in
+                        "tt") # user create, group create
+                                deluser ${HDHR_USER} # ensure that Username doesn't exist
+								# deluser seems to remove group in this case, too, so no delgroup necessary                
+                                addgroup -g $PGID $HDHR_GRP                                                                
+                                adduser -HDG "$HDHR_GRP" -u $PUID $HDHR_USER
+                                ;;
+                        "tf" | "ft") # user create, group remains
+                                deluser ${HDHR_USER}
+                                adduser -HDG "$HDHR_GRP" -u $PUID $HDHR_USER
+                                ;;
+                        "ff") # no user creation required
+                                echo "$(date -u)" "User Validation/creation complete" >> ${HDHR_LOG}
+                                ;;
+                        "*") # all else
+                                echo "$(date -u)" "unknown error happened during user validation/creation" >> ${HDHR_LOG}
+                                ;;
+                esac
+        else
+                echo "$(date -u)" "Running as non-root user $(id -nu)! Assuming use of  -user option on docker, skipping setup of user..." >> ${HDHR_LOG}
+        fi
 }
 
 ############################################################################################################
@@ -101,7 +127,7 @@ read_config_file()
        else                     
 		echo "$(date -u)" "configuration file doesn't exist"  >> ${HDHR_LOG}
 		force_config=1
-       fi                                
+       fi
 }
 
 
@@ -237,6 +263,9 @@ update_engine()
 			rm ${HDHR_HOME}/${DVRBin}_beta
 			chmod u+x ${HDHR_HOME}/${DVRBin}
 		fi
+	else
+			mv ${HDHR_HOME}/${DVRBin}_rel ${HDHR_HOME}/${DVRBin}
+			chmod u+x ${HDHR_HOME}/${DVRBin}
 	fi
 
 	EngineVer=$(sh ${HDHR_HOME}/${DVRBin}  version | awk 'NR==1{print $4}')
@@ -249,17 +278,44 @@ update_engine()
 start_engine()
 {
 	echo "$(date -u)" "** Starting the HDHomrun DVR Engine as user $HDHR_USER" >> ${HDHR_LOG}
-#	su ${HDHR_USER} -c 
-	${HDHR_HOME}/${DVRBin} foreground --conf ${DVRData}/${DVRConf} >> ${HDHR_LOG} 2>&1
+	su ${HDHR_USER} -c "${HDHR_HOME}/${DVRBin} foreground --conf ${DVRData}/${DVRConf}" >> ${HDHR_LOG} 2>&1
 }
 
+############################################################################################################
+# Stop the engine if running.
+#
+stop_engine()
+{
+	echo "$(date -u)" "** Attempting to stop HDHomrun DVR Engine" >> ${HDHR_LOG}
+	if ps | grep -F -m 1 "${DVRBin}" | grep -v grep ; then
+		echo "$(date -u)" "engine is running - return code: "$? >> ${HDHR_LOG}
+		./${HDHR_HOME}/${DVRBin} stop
+		echo "$(date -u)" "engine stopped" >> ${HDHR_LOG}
+	else
+		echo "$(date -u)" "engine not running - return code: "$? >> ${HDHR_LOG}
+	fi
+}
+###########################################################################################################               
+# Adjust File/directory properties to hdhr user/group
+#
+#
+adjust_ownership()                                                                                                         
+{
+        # adjust directories
+        chown ${HDHR_USER}:${HDHR_GRP} ${DVRData}
+        chown ${HDHR_USER}:${HDHR_GRP} ${DVRRec}
+        chown ${HDHR_USER}:${HDHR_GRP} ${HDHR_HOME}
+        # adjust files                                                                       
+        chown ${HDHR_USER}:${HDHR_GRP} ${HDHR_HOME}/${DVRBin}
+        chown ${HDHR_USER}:${HDHR_GRP} ${HDHR_LOG}
+}
 ############################################################################################################
 # Main loop
 #
 #
-# validate_config_file
-# update_engine
-# create_hdhr_user
-# start_engine
-echo "script dummy message"
-exit 0
+stop_engine
+create_hdhr_user
+validate_config_file
+update_engine
+adjust_ownership
+start_engine
