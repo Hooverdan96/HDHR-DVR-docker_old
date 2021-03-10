@@ -262,3 +262,4 @@ start_engine()
 # create_hdhr_user
 # start_engine
 echo "script dummy message"
+exit 0
