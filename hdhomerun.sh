@@ -257,7 +257,8 @@ start_engine()
 # Main loop
 #
 #
-validate_config_file
-update_engine
-create_hdhr_user
+# validate_config_file
+# update_engine
+# create_hdhr_user
 # start_engine
+echo "script dummy message"
