@@ -46,7 +46,7 @@ the configuration file will be created during the first run of the container in 
 | Parameter | Setting | Description |
 | --------| ------- | ------- |
 | BetaEngine | ```BetaEngine=0``` | Default Setting (created during initial launch of container. The script will compare the latest released engine (file creation date) with a possibly already installed engine and install the newer of the two. As long as the container is not restarted the engine won't be updated. |
-| BetaEngine | ```BetaEngine=1``` | then at the startup of the container the script evaluates the released, installed and beta engine versions (file creation date) and pick the newest one. As long as the container is not restarted the engine won't be updated. |
+| BetaEngine | ```BetaEngine=1``` | At the startup of the container the script evaluates the released, installed and beta engine versions (file creation date) and pick the newest one. As long as the container is not restarted the engine won't be updated. |
 
 
 ## Docker Run Example
