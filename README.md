@@ -34,7 +34,7 @@ As the dvr engine resides inside the docker container, two ports need to be mapp
 
 **Comment on using Host Network instead**
 
-If desired, the container can be run with the option to use the host's network stack and then no port mapping is required. However, before using that option, please consider security and other implications to your environment.
+Based on latest testing, the container right now unfortunately still requires the ```net=host``` option. Please consider security and other implications to your environment. Trying to work out whether it will be possible without.
 ```
 --network host
 ```
@@ -53,6 +53,7 @@ the configuration file will be created during the first run of the container in 
 ```
 docker run -d --name hdhomerun_dvr \
   --restart=unless-stopped \
+  -net=host
   -p 65001:65001/udp \
   -p any_tcp_port:59090 \
   -e PGID = numeric_Group_ID \
