@@ -39,10 +39,11 @@ RUN mkdir -p /HDHomeRunDVR && mkdir /dvrdata && mkdir /dvrrec
 ##########################################################################
 # Copy Startup Script into Image, will be run every time container is started
 COPY hdhomerun.sh /HDHomeRunDVR
+RUN chmod u+x /HDHomeRunDVR/hdhomerun.sh
 
 ##########################################################################
 ##########################################################################
-# Compressed Image with entry point
+# Add Volume, expose port and entry point
 ##########################################################################
 ##########################################################################
 FROM builder as final
@@ -55,5 +56,4 @@ EXPOSE 65001/udp
 # EXPOSE 59090
 
 # And setup to run by default
-# ENTRYPOINT ["/bin/sh","/HDHomeRunDVR/hdhomerun.sh"]
-ENTRYPOINT ["/bin/sh"]
+ENTRYPOINT ["/bin/sh","/HDHomeRunDVR/hdhomerun.sh"]
