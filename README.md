@@ -5,15 +5,11 @@ Docker Wrapper for SiliconDust's HDHomeRun DVR Record Engine
 
 Image based on latest Alpine Linux https://alpinelinux.org/
 
-Contains a script to download the latest engine when the engine is started.  
-To update the engine stop the container and then start it again and it will get the latest.
+Contains a script to download the latest engine after the container and before the engine is started. The engine resides within the container and not in a mounted folder.
+To update the engine stop the container and restart, this will trigger the download of the latest version.
 
-Is important for HDHomeRun system to have everything on the same Network. While this is considered a possible security risk for some, the alternatives seem to be too cumbersome (but open to suggestions). For now, run the run the container with the host network selected, i.e.
-```
---network host
-```
 ## DVR Engine User
-The container is run as a root user (unless specified differently in docker run command), but the engine can be run with a different user altogether, e.g. if the resulting files should be managed through a Plex server, then the user of the HDHomeRun DVR needs to be aligned with the user/user group of the Plex instance (or jellyfin, emby, kodi, etc.).
+The container is run as a root user (unless specified differently in docker run command), but the engine will be run with a different user. So, for example, if the resulting files should be managed through a Plex server, then the user and group IDs of the HDHomeRun DVR need to be aligned with the user/user group of the Plex instance (or jellyfin, emby, kodi, etc.). If the user/group on the host match this container's default, then none need to be passed.
 
 | Environment Variable | Description |
 |  --------| ------- |
@@ -28,17 +24,41 @@ The values to be used can be determined in a variety of ways (search for "Linux 
 | dvrrec | Recordings and the engine logs will be stored here |
 | dvrdata | Temporary data such as the engine itself, the config file, and a log output of the containers script |
 
+## Port Mapping
+As the dvr engine resides inside the docker container, two ports need to be mapped.
 
-## Docker Run
+| Destination Port | Description |
+| --------| ------- |
+| 65001 | udp port that is fixed, i.e. the mapping **always** has to be 65001:65001, this port is used by the HDHomeRun tuners and other clients to discover the dvr engine |
+| 59090 | this tcp port can be mapped to from any port, e.g. 23000:59090 as this is used for the dvr engine's interaction with tuners/clients |
+
+**Comment on using Host Network instead**
+
+Based on latest testing, the container right now unfortunately still requires the ```net=host``` option. Please consider security and other implications to your environment. Trying to work out whether it will be possible without.
 ```
-docker run -d --name dvr \
+--network host
+```
+
+## HDHomeRun DVR Configuration file
+
+the configuration file will be created during the first run of the container in the dvrdata volume. Subsequent stops/starts will inspect the file and recreate it if mapping/port are not aligned with what has been specified during the ```docker run``` command. There is an additional parameter added to the configuration file, that is used by this container. For adventurous users, there is the option to also include beta releases into the DVR engine updates.
+
+| Parameter | Setting | Description |
+| --------| ------- | ------- |
+| BetaEngine | ```BetaEngine=0``` | Default Setting (created during initial launch of container. The script will compare the latest released engine (file creation date) with a possibly already installed engine and install the newer of the two. As long as the container is not restarted the engine won't be updated. |
+| BetaEngine | ```BetaEngine=1``` | At the startup of the container the script evaluates the released, installed and beta engine versions (file creation date) and pick the newest one. As long as the container is not restarted the engine won't be updated. |
+
+
+## Docker Run Example
+```
+docker run -d --name hdhomerun_dvr \
   --restart=unless-stopped \
-  --network host \
+  -net=host
+  -p 65001:65001/udp \
+  -p any_tcp_port:59090 \
   -e PGID = numeric_Group_ID \
   -e PUID = numeric_User_ID \
-  -v /path/to/hdhomerun/tempdata:/dvrdata \
-  -v /path/to/hdhomerun/recordings:/dvrrec \
+  -v /path/to/hdhomerun/config&startuplogs:/dvrdata \
+  -v /path/to/hdhomerun/recordings&enginelogs:/dvrrec \
   jackdock96/hdh_dvr:latest
-  
-  (original before fork: demonrik/hdhrdvr-docker)
 ```
