@@ -5,11 +5,11 @@ Docker Wrapper for SiliconDust's HDHomeRun DVR Record Engine
 
 Image based on latest Alpine Linux https://alpinelinux.org/
 
-Contains a script to download the latest engine after the container and before the engine is started.  
+Contains a script to download the latest engine after the container and before the engine is started. The engine resides within the container and not in a mounted folder.
 To update the engine stop the container and restart, this will trigger the download of the latest version.
 
 ## DVR Engine User
-The container is run as a root user (unless specified differently in docker run command), but the engine can be run with a different user altogether, e.g. if the resulting files should be managed through a Plex server, then the user of the HDHomeRun DVR needs to be aligned with the user/user group of the Plex instance (or jellyfin, emby, kodi, etc.).
+The container is run as a root user (unless specified differently in docker run command), but the engine will be run with a different user. So, for example, if the resulting files should be managed through a Plex server, then the user and group IDs of the HDHomeRun DVR need to be aligned with the user/user group of the Plex instance (or jellyfin, emby, kodi, etc.). If the user/group on the host match this container's default, then none need to be passed.
 
 | Environment Variable | Description |
 |  --------| ------- |
@@ -34,10 +34,20 @@ As the dvr engine resides inside the docker container, two ports need to be mapp
 
 **Comment on using Host Network instead**
 
-If desired, the container can be run with the option to use the host's network stack and then no port mapping is required. Before using that option, please consider security implications to your environment.
+If desired, the container can be run with the option to use the host's network stack and then no port mapping is required. However, before using that option, please consider security and other implications to your environment.
 ```
 --network host
 ```
+
+## HDHomeRun DVR Configuration file
+
+the configuration file will be created during the first run of the container in the dvrdata volume. Subsequent stops/starts will inspect the file and recreate it if mapping/port are not aligned with what has been specified during the ```docker run``` command. There is an additional parameter added to the configuration file, that is used by this container. For adventurous users, there is the option to also include beta releases into the DVR engine updates.
+
+| Parameter | Setting | Description |
+| --------| ------- | ------- |
+| BetaEngine | ```BetaEngine=0``` | Default Setting (created during initial launch of container. The script will compare the latest released engine (file creation date) with a possibly already installed engine and install the newer of the two. As long as the container is not restarted the engine won't be updated. |
+| BetaEngine | ```BetaEngine=1``` | then at the startup of the container the script evaluates the released, installed and beta engine versions (file creation date) and pick the newest one. As long as the container is not restarted the engine won't be updated. |
+
 
 ## Docker Run Example
 ```
@@ -47,7 +57,7 @@ docker run -d --name hdhomerun_dvr \
   -p any_tcp_port:59090 \
   -e PGID = numeric_Group_ID \
   -e PUID = numeric_User_ID \
-  -v /path/to/hdhomerun/config&logs:/dvrdata \
-  -v /path/to/hdhomerun/recordings:/dvrrec \
+  -v /path/to/hdhomerun/config&startuplogs:/dvrdata \
+  -v /path/to/hdhomerun/recordings&enginelogs:/dvrrec \
   jackdock96/hdh_dvr:latest
 ```
