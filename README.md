@@ -53,7 +53,7 @@ the configuration file will be created during the first run of the container in 
 ```
 docker run -d --name hdhomerun_dvr \
   --restart=unless-stopped \
-  -net=host
+  --net=host
   -p 65001:65001/udp \
   -p any_tcp_port:59090 \
   -e PGID = numeric_Group_ID \
