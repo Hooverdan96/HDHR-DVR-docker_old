@@ -194,7 +194,7 @@ validate_config_file()
 		# too strict, no subfolders allowed
 		# if [ "${DVRRec}" = "${RecordPath}" ] ; then
 		# ensures that the 'root' of the Recording path corresponds to the volume mapping
-		if [ $(contains "${RecordPath}" "=${DVRRec}") -eq 0 ] ; then
+		if [ $(contains "=${RecordPath}" "=${DVRRec}") -eq 0 ] ; then
 			echo "$(date -u)" "Recording Path correct" >> ${HDHR_LOG}
 		else
 			echo "$(date -u)" "Recording Path in configuration file ${RecordPath} not matching with default path ${DVRRec}" >> ${HDHR_LOG}
