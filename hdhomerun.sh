@@ -191,7 +191,10 @@ validate_config_file()
 	if [ -e ${DVRData}/${DVRConf} ] ; then
 		echo "$(date -u)" "Config File exists and is writable - is record path and port correct"  >> ${HDHR_LOG}
 		.  ${DVRData}/${DVRConf}
-		if [ "${DVRRec}" = "${RecordPath}" ] ; then
+		# too strict, no subfolders allowed
+		# if [ "${DVRRec}" = "${RecordPath}" ] ; then
+		# ensures that the 'root' of the Recording path corresponds to the volume mapping
+		if [ $(contains "${RecordPath}" "=${DVRRec}") -eq 0 ] ; then
 			echo "$(date -u)" "Recording Path correct" >> ${HDHR_LOG}
 		else
 			echo "$(date -u)" "Recording Path in configuration file ${RecordPath} not matching with default path ${DVRRec}" >> ${HDHR_LOG}
