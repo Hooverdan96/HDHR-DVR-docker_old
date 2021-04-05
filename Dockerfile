@@ -4,8 +4,7 @@
 # if no config already exists and then start the engine.
 # To update the record engine, simply stop the container, and restart
 
-# Base Image to use - let's see whether latest alpine image causes issues
-# FROM alpine:3.11.6
+# FROM alpine:3.13.4 (3/31/2021)
 FROM alpine:latest as builder
 
 ##########################################################################
