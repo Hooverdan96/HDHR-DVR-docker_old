@@ -190,9 +190,9 @@ create_initial_config()
 	echo "Port=${DefaultPort}" >> ${DVRData}/${DVRConf}
 	echo "RecordStreamsMax=${RecordStreamsMax}" >>  ${DVRData}/${DVRConf}
 	echo "BetaEngine=${BetaEngine}" >>  ${DVRData}/${DVRConf}
-	
+	echo "" >> ${DVRData}/${DVRConf}
 	# file recreation if a storage ID already existed (found during validation routine), then insert
-	if [${StorageID} = ""] ; then
+	if [ -n ${StorageID} ] ; then
 		echo "StorageID=${StorageID}" >> ${DVRData}/${DVRConf}
 	fi
 	echo "$(date -u)" "** Finished creating Initial Config File" >> ${HDHR_LOG}
@@ -356,6 +356,7 @@ adjust_ownership()
 	# adjust files
 	chown ${HDHR_USER}:${HDHR_GRP} ${HDHR_HOME}/${DVRBin}
 	chown ${HDHR_USER}:${HDHR_GRP} ${HDHR_LOG}
+	chown ${HDHR_USER}:${HDHR_GRP} ${DVRData}/${DVRConf}
 }
 
 ############################################################################################################
