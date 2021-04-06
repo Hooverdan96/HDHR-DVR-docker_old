@@ -2,7 +2,7 @@
 ############################################################################################################
 # hdhomerun.sh
 # Shell Script to prepare the container data and execute the record engine
-# Version 2.5.1
+# Version 2.5.3
 # engine is run inside docker container, only exposing configuration and recording directory
 # freely after https://github.com/demonrik/HDHR-DVR-docker
 #
@@ -13,23 +13,24 @@
 # PUID=1001
 # PGID=1001
 
-HDHR_HOME=/HDHomeRunDVR					# working directory for DVR engine
+HDHR_HOME=/HDHomeRunDVR						# working directory for DVR engine
 HDHR_USER=hdhr							# dvr engine user
 HDHR_GRP=hdhr							# dvr engine user group
 DVRData=/dvrdata						# directory for log and configuration file
 DVRRec=/dvrrec							# directory for dvr recordings
 DefaultPort=59090						# exposed port for client communication (match dockerfile)
 DVRConf=dvr.conf						# configuration file name used during engine startup
-DVRBin=hdhomerun_record 				# dvr engine generic file name
-HDHR_LOG=${DVRData}/HDHomeRunDVR.log	# Log file name and location
+DVRBin=hdhomerun_record 					# dvr engine generic file name
+HDHR_LOG=${DVRData}/HDHomeRunDVR.log				# Log file name and location
 
 # Help Variables
-force_config=0	# force regeneration of configuration file (0 no, 1 yes)
-GO_CREATE=""	# track when to create user/group
+force_config=0							# force regeneration of configuration file (0 no, 1 yes)
+GO_CREATE=""							# track when to create user/group
 
-# Default config setting, not enabling use of beta engine
-# changeable by user after initial conf file creation directly in file
-BetaEngine=0	
+# changeable by user/DVR engine after initial configuration file creation directly in file
+BetaEngine=0							# default setting not to use Beta DVR engine
+StorageID=""							# default StorageID is empty (set by DVR engine on first initialization)
+RecordStreamsMax=16						# default RecordStreams set
 
 # Currently used download URLs from Silicondust
 # Check https://info.hdhomerun.com/info/dvr:linux
@@ -82,10 +83,11 @@ create_hdhr_user()
 			GO_CREATE="${GO_CREATE}f"
 			HDHR_USER=$(grep -F ":$PUID:" /etc/passwd | cut -d: -f1)
 		fi
-		# echo ${GO_CREATE}
+		
+		# Now create/adjust user/user group based on above evaluations
 		case "${GO_CREATE}" in
 			"tt") # user create, group create
-				deluser ${HDHR_USER} # ensure that Username doesn't exist
+				deluser ${HDHR_USER} 	# ensure that Username doesn't exist
 				# deluser seems to remove group in this case, too, so no delgroup necessary
 				addgroup -g $PGID $HDHR_GRP
 				adduser -HDG "$HDHR_GRP" -u $PUID $HDHR_USER
@@ -108,7 +110,7 @@ create_hdhr_user()
 
 ############################################################################################################
 # Read configuration file (if exists)
-# Ingest any Parameters relevant to this script (can't use declare or regex as not part of busybox ash)
+# Ingest any Parameters relevant to this script (can't use declare or regex, as not part of busybox ash --> sh)
 # 
 
 read_config_file()
@@ -116,28 +118,36 @@ read_config_file()
         echo "$(date -u)" "** Read config file (if it exists) for special parameters" >> ${HDHR_LOG}
 
         if [ -e ${DVRData}/${DVRConf} ] ; then
-	        while read -r line; do                                                      
+	        while read -r line; do
 			if [ $(contains "${line}" "BetaEngine") -eq 0 ] ; then
 				# read 1 character right of equal sign
 				BetaEngine="${line#*=}"
 				echo "$(date -u)" "Assigned BetaEngine Parameter value:" $BetaEngine  >> ${HDHR_LOG}
-			elif [ $(contains "${line}" "RecordPath") -eq 0 ] ; then               
-				# read string right of equal sign             
-				RecordPath="${line#*=}"                                                                  
+			elif [ $(contains "${line}" "RecordPath") -eq 0 ] ; then
+				# read string right of equal sign
+				RecordPath="${line#*=}"
 				echo "$(date -u)" "Assigned RecordPath Parameter value:" $RecordPath  >> ${HDHR_LOG}
-			elif [ $(contains "${line}" "Port") -eq 0 ] ; then          
-				# read characters right of equal sign                                  
-				Port="${line#*=}"                                                     
+			elif [ $(contains "${line}" "Port") -eq 0 ] ; then
+				# read characters right of equal sign
+				Port="${line#*=}"
 				echo "$(date -u)" "Assigned Port Parameter value:" $Port  >> ${HDHR_LOG}
-			else 
+			elif [ $(contains "${line}" "RecordStreamsMax") -eq 0 ] ; then
+				# read characters right of equal sign
+				RecordStreamsMax="${line#*=}"
+				echo "$(date -u)" "Maximum Recording Streams value:" $StorageID  >> ${HDHR_LOG}
+			elif [ $(contains "${line}" "StorageID") -eq 0 ] ; then
+				# read characters right of equal sign
+				StorageID="${line#*=}"
+				echo "$(date -u)" "Assigned StorageId value:" $StorageID  >> ${HDHR_LOG}
+			else
 				echo "$(date -u)" "${line}"  >> ${HDHR_LOG}
-			fi	                                                                                    
+			fi
 	        done < "${DVRData}/${DVRConf}"
 		echo "$(date -u)" "configuration file exists parameters read and assigned"  >> ${HDHR_LOG}
-       else                     
+       else
 		echo "$(date -u)" "configuration file doesn't exist"  >> ${HDHR_LOG}
 		force_config=1
-       fi                                
+       fi
 }
 
 
@@ -168,11 +178,23 @@ contains()
 create_initial_config()
 {
 	echo "$(date -u)" "** Creating Initial Config File" >> ${HDHR_LOG}
+	# remove config file, if it exists
+	if rm -f  ${DVRData}/${DVRConf} ; then
+		echo "$(date -u)" " existing config file deletion successful" >> ${HDHR_LOG}
+	fi
+	# create config file shell
 	touch  ${DVRData}/${DVRConf}
+	
+	# add entries
 	echo "RecordPath=${DVRRec}" >> ${DVRData}/${DVRConf}
 	echo "Port=${DefaultPort}" >> ${DVRData}/${DVRConf}
-	echo "RecordStreamsMax=16" >>  ${DVRData}/${DVRConf}
+	echo "RecordStreamsMax=${RecordStreamsMax}" >>  ${DVRData}/${DVRConf}
 	echo "BetaEngine=${BetaEngine}" >>  ${DVRData}/${DVRConf}
+	echo "" >> ${DVRData}/${DVRConf}
+	# file recreation if a storage ID already existed (found during validation routine), then insert
+	if [ -n ${StorageID} ] ; then
+		echo "StorageID=${StorageID}" >> ${DVRData}/${DVRConf}
+	fi
 	echo "$(date -u)" "** Finished creating Initial Config File" >> ${HDHR_LOG}
 }
 
@@ -180,7 +202,6 @@ create_initial_config()
 # Verifies the config file dvr.conf exists in /HDHomeRunDVR/data and ensure
 # is writable so Engine can update the StorageID
 # If the file doesnt exist, create one.
-# TODO: more elgant way - replace engine only if download newer (beta or release), otherwise leave alone
 #
 
 validate_config_file()
@@ -195,6 +216,8 @@ validate_config_file()
 		# if [ "${DVRRec}" = "${RecordPath}" ] ; then
 		# ensures that the 'root' of the Recording path corresponds to the volume mapping
 		if [ $(contains "=${RecordPath}" "=${DVRRec}") -eq 0 ] ; then
+			# set DVRRec to RecordPath, in case file is recreated due to failed conditions below
+			DVRRec=${RecordPath}
 			echo "$(date -u)" "Recording Path correct" >> ${HDHR_LOG}
 		else
 			echo "$(date -u)" "Recording Path in configuration file ${RecordPath} not matching with default path ${DVRRec}" >> ${HDHR_LOG}
@@ -211,6 +234,7 @@ validate_config_file()
 		echo "$(date -u)" "Config is missing - creating initial version" >> ${HDHR_LOG}
 			force_config=1
 	fi
+	
 	# any misalignments or missing file, the configuration file is recreated
 	if [ "${force_config}" -eq "1" ] ; then
 		echo "$(date -u)" "Creating initial version next ..." >> ${HDHR_LOG}
@@ -223,6 +247,7 @@ validate_config_file()
 # Get latest Record Engine(s) from SiliconDust, delete any previous
 # Get Beta (if enabled in conf) and released engine and compare dates
 # Select the newest amnd make it the default
+# TODO: more elgant way - replace engine only if download newer (beta or release), otherwise leave alone
 #
 
 update_engine()
@@ -324,6 +349,7 @@ stop_engine()
 #
 adjust_ownership()
 {
+	echo "$(date -u)" "adjust file and directory ownerships" >> ${HDHR_LOG}
 	# adjust directories
 	chown ${HDHR_USER}:${HDHR_GRP} ${DVRData}
 	chown ${HDHR_USER}:${HDHR_GRP} ${DVRRec}
@@ -331,6 +357,7 @@ adjust_ownership()
 	# adjust files
 	chown ${HDHR_USER}:${HDHR_GRP} ${HDHR_HOME}/${DVRBin}
 	chown ${HDHR_USER}:${HDHR_GRP} ${HDHR_LOG}
+	chown ${HDHR_USER}:${HDHR_GRP} ${DVRData}/${DVRConf}
 }
 
 ############################################################################################################
