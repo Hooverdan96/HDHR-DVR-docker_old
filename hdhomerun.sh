@@ -349,6 +349,7 @@ stop_engine()
 #
 adjust_ownership()
 {
+	echo "$(date -u)" "adjust file and directory ownerships" >> ${HDHR_LOG}
 	# adjust directories
 	chown ${HDHR_USER}:${HDHR_GRP} ${DVRData}
 	chown ${HDHR_USER}:${HDHR_GRP} ${DVRRec}
