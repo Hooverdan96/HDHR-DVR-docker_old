@@ -2,7 +2,7 @@
 ############################################################################################################
 # hdhomerun.sh
 # Shell Script to prepare the container data and execute the record engine
-# Version 2.5.3
+# Version 2.5.4
 # engine is run inside docker container, only exposing configuration and recording directory
 # freely after https://github.com/demonrik/HDHR-DVR-docker
 #
