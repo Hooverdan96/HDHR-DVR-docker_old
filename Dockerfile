@@ -5,6 +5,7 @@
 # To update the record engine, simply stop the container, and restart
 
 # FROM alpine: 3.16.2 (as of 08/09/2022)
+# changed to latest tag for periodic automatic updates
 FROM alpine:latest as builder
 
 ##########################################################################
