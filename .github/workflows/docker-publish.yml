@@ -56,5 +56,5 @@ jobs:
           context: .
           platforms: linux/arm64, linux/amd64, linux/arm/v7
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ env.IMAGE_NAME }}/hdh_dvr:latest
+          tags: ${{ env.IMAGE_NAME }}:latest
           labels: ${{ steps.meta.outputs.labels }}
