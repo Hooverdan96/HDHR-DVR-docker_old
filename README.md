@@ -50,7 +50,7 @@ the configuration file ```dvr.conf``` will be created during the first run of th
 
 **Indirect assignment of target subfolder**
 
-This is mostly relevant when this is used in a **NAS** type environment (e.g. Rockstor) where only Shares are assigned to the volume mapping.
+This is mostly relevant when this is used in a **NAS** type environment (e.g. [Rockstor](https://rockstor.com) where only Shares are assigned to the volume mapping.
 If a subfolder of an existing share should be used to hold the TV recordings as well as the Live TV stream buffer (for pausing, etc.) then the recording path in the ```dvr.conf``` (found in the folder that's assigned to the ```dvrdata``` volume) can be amended, with the subfolder (path). However, the root of the path needs to remain intact to ensure that mapped volumes in the container continue to match.
 
 Here is an example:
