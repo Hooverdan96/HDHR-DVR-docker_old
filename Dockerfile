@@ -4,7 +4,7 @@
 # if no config already exists and then start the engine.
 # To update the record engine, simply stop the container, and restart
 
-# FROM alpine: 3.18.3 (as of 08/07/2023)
+# FROM alpine: 3.19.1 (as of 03/23/2024)
 # changed to latest tag for periodic automatic updates
 FROM alpine:latest as builder
 
