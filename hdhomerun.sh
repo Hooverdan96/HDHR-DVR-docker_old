@@ -2,7 +2,7 @@
 ############################################################################################################
 # hdhomerun.sh
 # Shell Script to prepare the container data and execute the record engine
-# Version 2.5.4
+# Version 2.5.6
 # engine is run inside docker container, only exposing configuration and recording directory
 # freely after https://github.com/demonrik/HDHR-DVR-docker
 #
@@ -286,26 +286,26 @@ update_engine()
 	fi
 		
 	echo "$(date -u)" "Downloading latest release" >> ${HDHR_LOG}
-	wget -qO ${HDHR_HOME}/${DVRBin}_rel ${DownloadURL}
+	wget -qO "${HDHR_HOME}/${DVRBin}_rel" "${DownloadURL}"
 	if [ "$BetaEngine" -eq "1" ]; then
 		echo "$(date -u)" "Downloading latest beta" >> ${HDHR_LOG}
-		wget -qO ${HDHR_HOME}/${DVRBin}_beta ${BetaURL}
+		wget -qO "${HDHR_HOME}/${DVRBin}_beta" ${BetaURL}
 		echo "$(date -u)" "Comparing which is newest" >>  ${HDHR_LOG}
 		if [ ${HDHR_HOME}/${DVRBin}_rel -nt  ${DVRData}/${DVRBin}_beta ] ; then
 			echo "$(date -u)" "Release version is newer - selecting as record engine" >> ${HDHR_LOG}
-			mv ${HDHR_HOME}/${DVRBin}_rel ${DVRData}/${DVRBin}
-			rm ${HDHR_HOME}/${DVRBin}_beta
+			mv "${HDHR_HOME}/${DVRBin}_rel" "${DVRData}/${DVRBin}"
+			rm "${HDHR_HOME}/${DVRBin}_beta"
 			chmod u+x ${DVRData}/${DVRBin}
 		elif [ ${HDHR_HOME}/${DVRBin}_rel -ot  ${HDHR_HOME}/${DVRBin}_beta ]; then
 			echo "$(date -u)" "Beta version is newer - selecting as record engine" >> ${HDHR_LOG}
-			mv ${HDHR_HOME}/${DVRBin}_beta ${HDHR_HOME}/${DVRBin}
-			rm ${HDHR_HOME}/${DVRBin}_rel
-			chmod u+x ${HDHR_HOME}/${DVRBin}
+			mv "${HDHR_HOME}/${DVRBin}_beta" "${HDHR_HOME}/${DVRBin}"
+			rm "${HDHR_HOME}/${DVRBin}_rel"
+			chmod u+x "${HDHR_HOME}/${DVRBin}"
 		else
 			echo "$(date -u)" "Both versions are same - using the Release version" >> ${HDHR_LOG}
-			mv ${HDHR_HOME}/${DVRBin}_rel ${HDHR_HOME}/${DVRBin}
-			rm ${HDHR_HOME}/${DVRBin}_beta
-			chmod u+x ${HDHR_HOME}/${DVRBin}
+			mv "${HDHR_HOME}/${DVRBin}_rel" "${HDHR_HOME}/${DVRBin}"
+			rm "${HDHR_HOME}/${DVRBin}_beta"
+			chmod u+x "${HDHR_HOME}/${DVRBin}"
 		fi
 	else
 		mv ${HDHR_HOME}/${DVRBin}_rel ${HDHR_HOME}/${DVRBin}
@@ -351,13 +351,19 @@ adjust_ownership()
 {
 	echo "$(date -u)" "** Adjusting Files and directory ownerships to $HDHR_USER" >> ${HDHR_LOG}
 	# adjust directories
-	chown ${HDHR_USER}:${HDHR_GRP} ${DVRData}
-	chown ${HDHR_USER}:${HDHR_GRP} ${DVRRec}
-	chown ${HDHR_USER}:${HDHR_GRP} ${HDHR_HOME}
+	echo "$(date -u)" "** Ownership change of Config Directory: $DVRData" >> ${HDHR_LOG}
+        chown ${HDHR_USER}:${HDHR_GRP} "${DVRData}"
+        echo "$(date -u)" "** Ownership change of Recording Directory: $DVRRec" >> ${HDHR_LOG}
+	chown ${HDHR_USER}:${HDHR_GRP} "${DVRRec}"
+        echo "$(date -u)" "** Ownership change of DVR Working Directory: HDHR_HOME" >> ${HDHR_LOG}
+	chown ${HDHR_USER}:${HDHR_GRP} "${HDHR_HOME}"
 	# adjust files
-	chown ${HDHR_USER}:${HDHR_GRP} ${HDHR_HOME}/${DVRBin}
-	chown ${HDHR_USER}:${HDHR_GRP} ${HDHR_LOG}
-	chown ${HDHR_USER}:${HDHR_GRP} ${DVRData}/${DVRConf}
+        echo "$(date -u)" "** Ownership change of DVR: $DVRBin" >> ${HDHR_LOG}
+	chown ${HDHR_USER}:${HDHR_GRP} "${HDHR_HOME}/${DVRBin}"
+        echo "$(date -u)" "** Ownership change of Log File: $HDHR_LOG" >> ${HDHR_LOG}
+	chown ${HDHR_USER}:${HDHR_GRP} "${HDHR_LOG}"
+        echo "$(date -u)" "** Ownership change of Configuration File: $DVRConf" >> ${HDHR_LOG}
+	chown ${HDHR_USER}:${HDHR_GRP} "${DVRData}/${DVRConf}"
 }
 
 ############################################################################################################
