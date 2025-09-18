@@ -6,7 +6,7 @@
 
 # FROM alpine: 3.20.2 (as of 08/19/2024)
 # changed to latest tag for periodic automatic updates
-FROM alpine:latest as builder
+FROM alpine:latest AS builder
 
 ##########################################################################
 # Base Variables
@@ -46,7 +46,7 @@ RUN chmod u+x /HDHomeRunDVR/hdhomerun.sh
 # Add Volume, expose port and entry point
 ##########################################################################
 ##########################################################################
-FROM builder as final
+FROM builder AS final
 # Set Volumes to be added for external mapping
 VOLUME ["/dvrdata","/dvrrec"]
 
