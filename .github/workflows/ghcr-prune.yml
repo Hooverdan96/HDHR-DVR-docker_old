@@ -32,6 +32,6 @@ jobs:
         uses: quartx-analytics/ghcr-cleaner@v1
         with:
             owner-type: user # for organizations use org
-            token: ${{ secrets.GITHUB_TOKEN }}
+            token: ${{ secrets.DELETE_PACKAGES_TOKEN }}
             delete-untagged: true
             dry-run: ${{ github.event.inputs.dryrun || 'false' }}
