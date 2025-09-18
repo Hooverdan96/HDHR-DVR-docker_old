@@ -1,0 +1,35 @@
+name: Prune unused GHCR images
+
+on: workflow_dispatch
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  PACKAGE_NAME: ${{ github.repository_owner }}%2F${{ github.event.repository.name }}
+
+jobs:
+  prune-older-images:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prune unused images
+        uses: quartx-analytics/ghcr-cleaner@v1
+        with:
+            owner-type: org # or user
+            token: ${{ secrets.PAT_TOKEN }}
+            repository_owner: ${{ github.repository_owner }}
+            package-name: ${{ github.event.repository.name }}
+            delete-untagged: true
+            keep-latest: 10
+            keep-days: 30
+            dry-run: true # set to false to actually delete images
