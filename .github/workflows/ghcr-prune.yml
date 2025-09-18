@@ -3,12 +3,11 @@
 # "workflow_dispatch" event. The workflow uses a personal access token (PAT)
 # with appropriate permissions to delete images from the registry.
 
-
----
 name: github-cleanup
 on:
+  # Run on third day of every month at 3:30am system time
   schedule:
-    - cron: '30 2 1 * *'
+    - cron: '30 3 3 * *'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
@@ -32,7 +31,7 @@ jobs:
         uses: quartx-analytics/ghcr-cleaner@v1
         with:
             owner-type: user # for organizations use org
-            token: ${{ secrets.DELETE_PACKAGES_TOKEN }}
+            token: ${{ secrets.DELETE_PACKAGES_TOKEN }} # classic PAT read:project, repo, write:packages
             delete-untagged: true
             keep-at-most: 5
             dry-run: ${{ github.event.inputs.dryrun || 'false' }}
