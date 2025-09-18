@@ -8,8 +8,8 @@ name: Container on Docker Hub
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 10 */16 * *' # twice monthly builds
+#  schedule:
+#    - cron: '0 10 */16 * *' # twice monthly builds
 #  push:
 #    branches: [ master ]
     # Publish semver tags as releases.
