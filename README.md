@@ -1,3 +1,10 @@
+# This repository is now archived and superseeded by https://github.com/Hooverdan96/HDHR-DVR-docker
+
+- mostly for administrative purposes to disconnect from the original repo this was forked from as they are substantially different and to avoid inadvertent pushes to the original upstream.
+- the current container images will be updated from the newly created repository
+
+
+
 Forked from: https://github.com/demonrik/HDHR-DVR-docker
 
 # HDHR-DVR-docker
