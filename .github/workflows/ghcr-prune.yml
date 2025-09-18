@@ -34,4 +34,5 @@ jobs:
             owner-type: user # for organizations use org
             token: ${{ secrets.DELETE_PACKAGES_TOKEN }}
             delete-untagged: true
+            keep-at-most: 5
             dry-run: ${{ github.event.inputs.dryrun || 'false' }}
