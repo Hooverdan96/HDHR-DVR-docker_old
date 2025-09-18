@@ -1,9 +1,9 @@
+name: github package cleanup
 # This workflow prunes unused images from the GitHub Container Registry (GHCR)
 # associated with this repository. It can be triggered manually via the
 # "workflow_dispatch" event. The workflow uses a personal access token (PAT)
 # with appropriate permissions to delete images from the registry.
 
-name: github-cleanup
 on:
   # Run on third day of every month at 3:30am system time
   schedule:
@@ -37,5 +37,5 @@ jobs:
             owner-type: user # for organizations use org
             token: ${{ secrets.DELETE_PACKAGES_TOKEN }} # classic PAT read:project, repo, write:packages, delete:packages
             delete-untagged: true
-            keep-at-most: ${{ env.INPUT_keep-at-most-num | 5 }}
+            keep-at-most: ${{ env.INPUT_keep-at-most-num || 5 }}
             dry-run: ${{ github.event.inputs.dryrun || 'false' }}
