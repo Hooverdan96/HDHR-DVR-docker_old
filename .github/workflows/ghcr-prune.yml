@@ -11,7 +11,7 @@ on:
   pull_request:
     branches:
       - main
-    source: main
+
 
 env:
   REGISTRY: ghcr.io
@@ -37,7 +37,7 @@ jobs:
         uses: quartx-analytics/ghcr-cleaner@v1
         with:
             owner-type: org # or user
-            token: ${{ secrets.PAT_TOKEN }}
+            token: ${{ secrets.GITHUB_TOKEN }}
             repository_owner: ${{ github.repository_owner }}
             package-name: ${{ github.event.repository.name }}
             delete-untagged: true
