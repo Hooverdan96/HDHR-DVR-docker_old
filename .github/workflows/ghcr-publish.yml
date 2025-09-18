@@ -6,14 +6,15 @@ name: Container build
 # documentation.
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 10 */16 * *' # twice monthly builds
-  push:
-    branches: [ master ]
+#  push:
+#    branches: [ master ]
     # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
-  pull_request:
-    branches: [ master ]
+#    tags: [ 'v*.*.*' ]
+#  pull_request:
+#    branches: [ master ]
 
 env:
   # Use docker.io for Docker Hub if empty
