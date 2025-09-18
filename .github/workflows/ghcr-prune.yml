@@ -16,6 +16,10 @@ on:
         required: true
         default: false
         type: boolean
+      keep-at-most-num:
+        description: keep-at-most, default '5'
+        required: false
+        default: 5
 env:
   REGISTRY_NAME: ghcr.io
   IMAGE_NAME: hdhr-dvr-docker
@@ -33,5 +37,5 @@ jobs:
             owner-type: user # for organizations use org
             token: ${{ secrets.DELETE_PACKAGES_TOKEN }} # classic PAT read:project, repo, write:packages, delete:packages
             delete-untagged: true
-            keep-at-most: 5
+            keep-at-most: ${{ env.INPUT_keep-at-most-num | 5 }}
             dry-run: ${{ github.event.inputs.dryrun || 'false' }}
