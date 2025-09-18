@@ -1,3 +1,9 @@
+# This workflow prunes unused images from the GitHub Container Registry (GHCR)
+# associated with this repository. It can be triggered manually via the
+# "workflow_dispatch" event. The workflow uses a personal access token (PAT)
+# with appropriate permissions to delete images from the registry.
+
+
 name: Prune unused GHCR images
 
 on: workflow_dispatch
