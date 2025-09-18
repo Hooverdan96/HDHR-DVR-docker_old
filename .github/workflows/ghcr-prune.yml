@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
     inputs:
       dryrun:
-        description: dry-run execution, default 'true'
+        description: dry-run execution, default 'false'
         required: true
         default: false
         type: boolean
@@ -34,4 +34,4 @@ jobs:
             owner-type: org
             token: ${{ secrets.GITHUB_TOKEN }}
             delete-untagged: true
-            dry-run: true # ${{ github.event.inputs.dryrun || 'false' }}
+            dry-run: ${{ github.event.inputs.dryrun || 'false' }}
