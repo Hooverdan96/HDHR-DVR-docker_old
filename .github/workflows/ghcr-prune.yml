@@ -6,7 +6,12 @@
 
 name: Prune unused GHCR images
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    source: main
 
 env:
   REGISTRY: ghcr.io
