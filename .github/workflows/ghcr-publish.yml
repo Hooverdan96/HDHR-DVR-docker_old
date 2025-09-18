@@ -2,8 +2,8 @@ name: GitHub Container build
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 10 */16 * *' # twice monthly builds
+#  schedule:
+#    - cron: '0 10 */16 * *' # twice monthly builds
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
